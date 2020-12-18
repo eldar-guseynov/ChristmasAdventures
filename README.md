@@ -32,6 +32,13 @@ Unpack archive
 Run builds/win/ChristmasAdventures.exe
 ```
 
+## Controls
+
+* Left: Move left  
+* Right: Move right  
+* Up: Jump   
+* Down: Sit
+
 ## Release History
 
 * 0.0.1
