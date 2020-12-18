@@ -17,7 +17,7 @@ class Santa:
         self.position = position
         self.settings = Settings('settings.ini').settings
         music_path = self.settings['path'] + '/assets/audio'
-        self.sounds = {'move': pygame.mixer.Sound(f'{music_path}/step.ogg'),
+        self.sounds = {'move': pygame.mixer.Sound(f'{music_path}/step.mp3'),
                        'die': pygame.mixer.Sound(f'{music_path}/die.mp3')}
         self.skin = self.set_skin(skin_name)
         x, y = position
