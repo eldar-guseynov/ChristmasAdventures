@@ -47,7 +47,7 @@ Run builds/win/ChristmasAdventures.exe
 ## Problems? Just text!
 
 [@Ulbandus](https://tlgg.ru/Ulbandus) - Telegram
-> TODO: Add TimofeyXXX contacts
+[@TimofeyXXX](https://vk.com/id517827304) - ВК
 
 
 ## Some screenshots...
