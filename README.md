@@ -34,7 +34,7 @@ Run builds/win/ChristmasAdventures.exe
 
 ## Controls
 
-* Left: Move left  
+* Left: Move left   
 * Right: Move right  
 * Up: Jump   
 * Down: Sit
@@ -46,7 +46,7 @@ Run builds/win/ChristmasAdventures.exe
 
 ## Problems? Just text!
 
-[@Ulbandus](https://tlgg.ru/Ulbandus) - Telegram
+[@Ulbandus](https://tlgg.ru/Ulbandus) - Telegram   ;
 [@TimofeyXXX](https://vk.com/id517827304) - ВК
 
 
