@@ -10,7 +10,7 @@ Try to ***escape*** and have ***fun***!
 This game was written using Python and libary PyGame, inspired by *[Trap Adventure 2](http://trapadventure2.org/)*
 
 ## How to play?
-<img align="left" width="30" height="30" src="https://lh3.googleusercontent.com/r0V7tcKsS541mAoj6hmYJigVsSNZyeJrl4uuhdwqqeY42HeWJWdxOIy5Gh2nLG2NQDHBiN66NS0">
+<img align="left" width="30" height="30" src="https://i.imgur.com/0hv6SOQ.png">
    Linux:
 
 ```sh
@@ -21,7 +21,7 @@ pip install -r requirements.txt
 python3 ChristmasAdventures 
 ```
 
-<img align="left" width="30" height="30" src="https://lh3.googleusercontent.com/4AEExHTRs0XmtIAElWkuqQhJzZvoio-VxELNHf9_1XLa7JKC1hxh6ISIyf1asVIr2CpS5vSo2LE">
+<img align="left" width="30" height="30" src="https://i.imgur.com/tD6vH32.png">
 Windows:
 
 > TODO: Add branch bin/windows and create change short link 
@@ -33,7 +33,7 @@ Run builds/win/ChristmasAdventures.exe
 ```
 
 ## Controls
-<img align="right" width="200" height="160" src="https://lh3.googleusercontent.com/THE9QQdJ5vQ-_-pU1V0aCcJIG6KC-8RSE9u3ixCsrvs0dDy8g5MNHLJPishNznnNz4iFugi08CY ">
+<img align="right" width="200" height="160" src="https://i.imgur.com/TQK70fH.jpg">
 
 * Left: Move left   
 * Right: Move right  
@@ -49,7 +49,7 @@ Run builds/win/ChristmasAdventures.exe
     russian readme, a few databases, font, background, reward and heart sprites
 
 ## Problems? Just text!
-<img align="right" width="30" height="30" src="https://lh3.googleusercontent.com/W_y1hffMjPromLhVumqUB07jDpc396uO00Ypxl2sk566nHup0LQOP984RWiIs2CB5HNXCvkWJRU">
+<img align="left" width="30" height="30" src="https://i.imgur.com/62nfi9Z.png">
   
   [@Ulbandus](https://tlgg.ru/Ulbandus)
 
