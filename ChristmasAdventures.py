@@ -326,6 +326,7 @@ class Window:
     def draw(self) -> None:
         pass
 
+
 class Level(Window):
     __slots__ = ['santa']
 
@@ -369,13 +370,14 @@ class Level(Window):
     def draw(self) -> None:
         self.santa.skin_group.draw(self.screen)
 
+
 class SettingsWindow(Window):
     __slots__ = []
-    
+
     def __init__(self, settings: dict):
         super().__init__(settings, mode='settings')
         settings_path = self.settings['_settings_path']
-        
+
     def game_cycle(self) -> None:
         running = True
         while running:
@@ -386,10 +388,10 @@ class SettingsWindow(Window):
             self.clock.tick(self.fps)
             self.screen.blit(self.background_filler, [0, 0])
             self.gui_manager.update(time_delta)
-            self.gui_manager.draw_ui(self.screen)            
+            self.gui_manager.draw_ui(self.screen)
             self.draw()
             pygame.display.update()
-            
+
     def event_handler(self, event):
         if event.type == pygame.QUIT:
             return False
@@ -431,7 +433,8 @@ class MainWindow(Window):
             'hovered_image': load(f'{gui_path}{name}_pressed.png')}
             for name in images_name_list}
         return images
-    
+
+      
     def load_icon(self, icon_path):
         return pygame.transform.scale(icon_path, [50, 50])
 
@@ -474,7 +477,6 @@ class MainWindow(Window):
         button.hovered_image = settings_pressed_icon
         button.rebuild()
         return button
-    
 
     def draw(self) -> None:
         self.draw_background_text()
@@ -490,7 +492,7 @@ class MainWindow(Window):
             text.get_width() // 2
         text_y = 20
         return text, (text_x, text_y)
-    
+
     def is_button_event(self, event):
         if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element.text == '':
@@ -498,7 +500,7 @@ class MainWindow(Window):
                     if event.ui_element == self.buttons[button_name]:
                         return True
         return False
-    
+
     def get_button_name(self, button):
         for button_name in self.buttons:
             if button == self.buttons[button_name]:
@@ -535,7 +537,8 @@ class MainWindow(Window):
                     elif button_name == 'play':
                         self.mode = 'level'
                         running = False
-            if faq != None and (faq.dismiss_button.pressed or\
+
+            if faq != None and (faq.dismiss_button.pressed or
                                 faq.close_window_button.pressed):
                 faq.kill()
             self.gui_manager.process_events(event)
@@ -573,6 +576,7 @@ def run(game):
         game = get_game(new_mode)
         start_mode = new_mode
         run(game)
+
 
 game = get_game('main_window')
 run(game)
