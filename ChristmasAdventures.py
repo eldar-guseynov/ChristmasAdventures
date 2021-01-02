@@ -108,7 +108,7 @@ class DataBase:
             result: str = cur.execute(command).fetchall()
         return result
 
-    def get_text(self):
+    def get_text(self) -> dict:
         self.selected_db_path = self.text_db_path
         result = self.execute('SELECT *\nFROM en')[0]
         decryptor = {0: 'play', 1: 'shop', 2: 'faq', 3: 'settings',
@@ -142,6 +142,9 @@ class Sounds:
     def play(self, name, loops=1) -> None:
         self.sounds[name]['sound'].play(loops)
 
+    def stop(self, name):
+        self.sounds[name]['sound'].stop()
+
     def stop_all(self) -> None:
         for name in self.sounds:
             self.sounds[name]['sound'].stop()
@@ -170,7 +173,13 @@ class Settings:
                 'window_size': window_size,
                 'skin': skin,
                 '_settings_path': self.settings_path}
-
+    
+    def save(self, new_settings: dict) -> None:
+        for key in new_settings:
+            self.settings_parser.set(
+                'ChristmasAdventures', key, new_settings[key])
+        with open(self.settings_path, 'w', encoding='utf-8') as settings_file:
+            self.settings_parser.write(settings_file)
 
 class Player(Sprite):
     __slots__ = ['skin', 'jump_count', 'jump_time', 'last_stand_func_call',
@@ -209,7 +218,7 @@ class Player(Sprite):
     def die(self) -> None:
         self.hit_points -= 1
         self.to_spawn()
-        self.sounds.stop_all()
+        self.sounds.stop('step')
         self.sounds.play('die')
 
     def turn(self, direction: str) -> None:
@@ -222,7 +231,7 @@ class Player(Sprite):
         i = 1 if self.state['jump'] else 5
         if self.state['sit']:
             return self.turn(direction)
-        if direction == 'right':
+        elif direction == 'right':
             if self.is_in_window([self.skin.rect.x + i, self.skin.rect.y]):
                 self.skin.rect.x += i
             else:
@@ -239,7 +248,8 @@ class Player(Sprite):
         self.sounds.play('step')
 
     def flip(self) -> None:
-        self.skin.image = pygame.transform.flip(self.skin.image, True, False)
+        flip = pygame.transform.flip
+        self.skin.image = flip(self.skin.image, True, False)
         self.state['flip'] = not self.state['flip']
         self.state['flip_counter'] += 1
 
@@ -280,18 +290,22 @@ class Player(Sprite):
                 ((self.jump_count ** 2) / 2)
             self.jump_count -= 1
         else:
-            self.jump_count = 10
-            self.skin.rect.y = self.jump_start
             self.state['jump'] = False
+            self.state['sit'] = True
             pygame.key.set_repeat(1, 100)
             pygame.mixer.unpause()
-            self.state['sit'] = True
+            self.skin.rect.y = self.jump_start
+            self.jump_count = 10
             self.stand()
+            
+
+
 
 
 class Window:
     __slots__ = ['settings', 'fps', 'mode', 'background_filler',
-                 'text_filler', 'clock', 'screen', 'gui_manager']
+                 'text_filler', 'clock', 'screen', 'gui_manager',
+                 'database', 'gui_tools']
 
     def __init__(self, settings: dict, mode: str):
         pygame.event.set_allowed(
@@ -299,13 +313,15 @@ class Window:
              pygame.USEREVENT, pygame.MOUSEBUTTONUP])
         pygame.key.set_repeat(1, 100)
         self.settings: dict = settings
+        self.gui_tools = GUItools(settings)
+        self.gui_manager = self.gui_tools.gui_manager
+        db_path = f'{self.settings["path"]}/assets/database/'
+        self.database = DataBase(db_path)
         self.fps = self.settings['fps']
-        self.gui_manager = pygame_gui.UIManager(self.settings['window_size'])
         self.mode = mode
         background_path = self.settings['path'] + \
             '/assets/sprites/background/background.png'
         self.background_filler = pygame.image.load(background_path)
-        self.text_filler = (255, 255, 255)
         self.clock: pygame.time.Clock = pygame.time.Clock()
         icon_path = '/assets/sprites/icons/window_icons/icon_standart.png'
         icon = pygame.image.load(self.settings['path'] + icon_path)
@@ -319,12 +335,6 @@ class Window:
         screen.set_alpha(None)
         pygame.display.set_caption(title)
         return screen
-
-    def event_handler(self, event: pygame.event) -> None:
-        pass
-
-    def draw(self) -> None:
-        pass
 
 
 class Level(Window):
@@ -372,11 +382,12 @@ class Level(Window):
 
 
 class SettingsWindow(Window):
-    __slots__ = []
 
     def __init__(self, settings: dict):
         super().__init__(settings, mode='settings')
-        settings_path = self.settings['_settings_path']
+        sprites = f'{self.settings["path"]}/assets/sprites/'        
+        background_path = f'{sprites}/background/main_window_background.png'
+        self.background_filler = pygame.image.load(background_path)
 
     def game_cycle(self) -> None:
         running = True
@@ -384,47 +395,41 @@ class SettingsWindow(Window):
             time_delta = self.clock.tick(60) / 1000.0
             for event in pygame.event.get():
                 running = self.event_handler(event)
-            self.gui_manager.process_events(event)
+            self.gui_tools.gui_manager.process_events(event)
             self.clock.tick(self.fps)
             self.screen.blit(self.background_filler, [0, 0])
-            self.gui_manager.update(time_delta)
-            self.gui_manager.draw_ui(self.screen)
+            self.gui_tools.gui_manager.draw_ui(self.screen)
+            self.gui_tools.gui_manager.update(time_delta)
             self.draw()
             pygame.display.update()
+
+    def draw(self):
+        self.gui_tools.draw_background_text(self.screen)
 
     def event_handler(self, event):
         if event.type == pygame.QUIT:
             return False
-        if event.type == pygame.USEREVENT and self.is_gui_ivent(event):
-            button_name = self.get_button_name(event.ui_element)
-            if button_name == 'faq':
-                self.show_faq()
-            elif button_name == 'settings':
-                self.mode = 'settings'
-                return False
-            elif button_name == 'play':
-                self.mode = 'level'
-                return False
+        if event.type == pygame.USEREVENT and self.gui_tools.is_button_event(event):
+            button_name = self.gui_tools.get_button_name(event.ui_element)
+            if button_name == 'no':
+                pass
+            elif button_name == 'yes':
+                pass
         return True
 
-
-class MainWindow(Window):
-    __slots__ = ['christmas_font', 'main_heading', 'background_filler',
-                 'buttons', 'texts']
-
+class GUItools:
     def __init__(self, settings: dict):
-        super().__init__(settings, mode='main_window')
+        self.settings = settings
+        self.text_filler = (255, 255, 255)        
         db_path = f'{self.settings["path"]}/assets/database/'
-        database = DataBase(db_path)
-        self.texts = database.get_text()
-        font_path = f"{self.settings['path']}/{database.get_fonts('christmas')}"
+        self.database = DataBase(db_path)
+        self.texts = self.database.get_text()
+        self.gui_manager = pygame_gui.UIManager(self.settings['window_size'])
+        font_path = f"{self.settings['path']}/{self.database.get_fonts('christmas')}"
         self.christmas_font = pygame.font.Font(font_path, 50)
-        self.main_heading = self.get_background_text('Christmas Adventures')
-        sprites = f'{self.settings["path"]}/assets/sprites/'
-        background_path = f'{sprites}/background/main_window_background.png'
-        self.background_filler = pygame.image.load(background_path)
+        self.main_heading = self.get_background_text('Christmas Adventures')        
         self.buttons = self.get_buttons()
-        
+
     def get_buttons_images(self, images_name_list) -> dict:
         gui_path = self.settings['path'] + '/assets/sprites/icons/gui/'
         load = pygame.image.load
@@ -434,14 +439,23 @@ class MainWindow(Window):
             for name in images_name_list}
         return images
 
-      
-    def load_icon(self, icon_path):
+    def load_icon(self, icon_path) -> pygame.Surface:
         return pygame.transform.scale(icon_path, [50, 50])
 
-    def draw_button_label(self, button_x_position, space, label):
-        label_rect = pygame.Rect(
-            (button_x_position + 46, self.settings['window_size'][1] - 55),
-            (space - 46, 50))
+    def is_button_event(self, event):
+        if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+            if event.ui_element.text == '':
+                for button_name in self.buttons:
+                    if event.ui_element == self.buttons[button_name]:
+                        return True
+        return False    
+
+    def draw_button_label(self, button_x_position, space, label) -> None:
+        label_x = button_x_position + 46
+        label_y = self.settings['window_size'][1] - 55
+        label_w = space - 46
+        label_h = 50
+        label_rect = pygame.Rect((label_x, label_y), (label_w, label_h))
         label = pygame_gui.elements.UIButton(
             relative_rect=label_rect,
             text=label.capitalize(),
@@ -452,7 +466,7 @@ class MainWindow(Window):
                 label.colours[theme] = main_color
         label.rebuild()
 
-    def get_buttons(self):
+    def get_buttons(self) -> dict:
         images_name_list = ['settings', 'faq', 'shop', 'play']
         images = self.get_buttons_images(images_name_list)
         buttons = {}
@@ -476,14 +490,8 @@ class MainWindow(Window):
         button.normal_image = button.selected_image = settings_icon
         button.hovered_image = settings_pressed_icon
         button.rebuild()
-        return button
-
-    def draw(self) -> None:
-        self.draw_background_text()
-
-    def draw_background_text(self) -> None:
-        self.screen.blit(*self.main_heading)
-
+        return button 
+    
     def get_background_text(self, text: str) -> (pygame.font.Font.render,
                                                  (int, int)):
         text = self.christmas_font.render(text,
@@ -491,31 +499,56 @@ class MainWindow(Window):
         text_x = self.settings['window_size'][0] // 2 - \
             text.get_width() // 2
         text_y = 20
-        return text, (text_x, text_y)
+        return text, (text_x, text_y)   
 
-    def is_button_event(self, event):
-        if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
-            if event.ui_element.text == '':
-                for button_name in self.buttons:
-                    if event.ui_element == self.buttons[button_name]:
-                        return True
-        return False
+
+    def draw_background_text(self, screen) -> None:
+        screen.blit(*self.main_heading)
 
     def get_button_name(self, button):
         for button_name in self.buttons:
             if button == self.buttons[button_name]:
                 return button_name
         return ''
-
-    def show_faq(self):
+    
+    def is_button_event(self, event):
+        if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+            if event.ui_element.text == '':
+                for button_name in self.buttons:
+                    if event.ui_element == self.buttons[button_name]:
+                        return True
+        return False    
+    
+    def show_message(self, title: str, text: str):
         window = pygame_gui.windows.UIMessageWindow(
             rect=pygame.Rect(
                 (170, 100), (400, 300)),
-            window_title="FAQ",
-            html_message=self.texts['faq_text'],
+            window_title=title,
+            html_message=text,
             manager=self.gui_manager)
         window.dismiss_button.text = 'Ok'
         window.dismiss_button.rebuild()
+        return window        
+
+        
+
+class MainWindow(Window):
+    __slots__ = ['christmas_font', 'background_filler',
+                 'buttons', 'texts']
+
+    def __init__(self, settings: dict):
+        super().__init__(settings, mode='main_window')
+        sprites = f'{self.settings["path"]}/assets/sprites/'
+        background_path = f'{sprites}/background/main_window_background.png'
+        self.background_filler = pygame.image.load(background_path)
+
+    def draw(self) -> None:
+        self.gui_tools.draw_background_text(self.screen)
+
+    def show_faq(self):
+        window = self.gui_tools.show_message(
+            title='FAQ',
+            text=self.gui_tools.texts['faq_text'])
         return window
 
     def game_cycle(self) -> None:
@@ -524,30 +557,33 @@ class MainWindow(Window):
         while running:
             time_delta = self.clock.tick(60) / 1000.0
             for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                if event.type == pygame.USEREVENT and self.is_button_event(
-                    event):
-                    button_name = self.get_button_name(event.ui_element)
-                    if button_name == 'faq':
-                        faq = self.show_faq()
-                    elif button_name == 'settings':
-                        self.mode = 'settings'
-                        running = False
-                    elif button_name == 'play':
-                        self.mode = 'level'
-                        running = False
-
-            if faq != None and (faq.dismiss_button.pressed or
-                                faq.close_window_button.pressed):
+                running, faq = self.event_handler(event, running, faq)
+            if faq != None and (faq.dismiss_button.pressed
+                                or faq.close_window_button.pressed):
                 faq.kill()
-            self.gui_manager.process_events(event)
+            self.gui_tools.gui_manager.process_events(event)
             self.clock.tick(self.fps)
             self.screen.blit(self.background_filler, [0, 0])
-            self.gui_manager.update(time_delta)
-            self.gui_manager.draw_ui(self.screen)            
             self.draw()
+            self.gui_tools.gui_manager.draw_ui(self.screen)
+            self.gui_tools.gui_manager.update(time_delta)
             pygame.display.update()
+
+    def event_handler(self, event, running, faq=None) -> (bool, None):
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.USEREVENT and self.gui_tools.is_button_event(
+                event):
+            button_name = self.gui_tools.get_button_name(event.ui_element)
+            if button_name == 'faq':
+                faq = self.show_faq()
+            elif button_name == 'settings':
+                self.mode = 'settings'
+                running = False
+            elif button_name == 'play':
+                self.mode = 'level'
+                running = False
+        return (running, faq)
 
 
 class Game:
@@ -568,6 +604,7 @@ class Game:
 def get_game(mode):
     return Game(Settings(SETTINGS_FILE).settings, mode)
 
+
 def run(game):
     start_mode = game.game.mode
     game.game_cycle()
@@ -576,7 +613,6 @@ def run(game):
         game = get_game(new_mode)
         start_mode = new_mode
         run(game)
-
 
 game = get_game('main_window')
 run(game)
