@@ -118,6 +118,7 @@ class Player(Sprite):
         self.sounds.stop('step')
         self.sounds.play('die')
         self.hit_points -= 1
+        self.state['stand'] = False
 
     def update(self, sprite_group, move_direction=False,
                is_jumping=False) -> None:
@@ -131,31 +132,42 @@ class Player(Sprite):
             self.move_speed = 0
         if not self.state['stand']:
             self.jump_speed += self.settings['gravity']
+        self.state['stand'] = False
         self.move(sprite_group)
 
     def move(self, sprite_group) -> None:
-        self.state['stand'] = False
         self.rect.y += self.jump_speed
+        if self.is_collide(sprite_group):
+            wall = self.get_collide_object(sprite_group)
+            if self.jump_speed > 0:
+                self.rect.bottom = wall.rect.top
+                self.jump_speed = 0
+                self.state['stand'] = True
+            if self.jump_speed < 0:
+                self.rect.top = wall.rect.bottom
+                self.jump_speed = 0
+                self.state['stand'] = False
+        else:
+            if self.jump_speed > 0:
+                self.state['stand'] = False
         self.rect.x += self.move_speed
         if self.is_collide(sprite_group):
+            wall = self.get_collide_object(sprite_group)
             if self.move_speed > 0:
-                self.rect.x -= self.move_speed
+                self.rect.right = wall.rect.left
+                self.move_speed = 0
             if self.move_speed < 0:
-                self.rect.x += self.move_speed
-            if self.is_collide(sprite_group):
-                self.rect.x -= self.move_speed * 2
-            if self.jump_speed > 0:
-                self.state['stand'] = True
-                self.rect.y -= self.jump_speed
-                self.jump_speed = 0
-            if self.jump_speed < 0:
-                self.rect.y += self.jump_speed
-                self.jump_speed = 0
-            if self.is_collide(sprite_group):
-                self.rect.y += 3
+                self.rect.left = wall.rect.right
+                self.move_speed = 0
 
     def is_collide(self, sprite_group) -> bool:
         for sprite in sprite_group:
             if pygame.sprite.collide_mask(self, sprite):
                 return True
+        return False
+
+    def get_collide_object(self, sprite_group):
+        for sprite in sprite_group:
+            if pygame.sprite.collide_mask(self, sprite):
+                return sprite
         return False

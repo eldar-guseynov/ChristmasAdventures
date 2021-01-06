@@ -24,7 +24,7 @@ class Window:
         pygame.event.set_allowed(
             [pygame.QUIT, pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN, pygame.KEYUP,
              pygame.USEREVENT, pygame.MOUSEBUTTONUP])
-        pygame.key.set_repeat(1, 100)
+        pygame.key.set_repeat(1, 50)
         self.settings: dict = settings
         self.manager = pygame_gui.UIManager(self.settings['window_size'])
         db_path = f'{self.settings["path"]}/assets/database/'
@@ -88,46 +88,52 @@ class Level(Window):
                                     self.settings)
 
     def get_sprite(self, image, position,
-                   size=[10, 10], sprite_groups=[]) -> pygame.sprite.Sprite:
+                   sprite_groups=[]) -> pygame.sprite.Sprite:
         sprite = pygame.sprite.Sprite()
         sprite.image = pygame.image.load(image)
         sprite.mask = pygame.mask.from_surface(sprite.image)
-        sprite.rect = pygame.Rect((*position,), (*size,))
+        sprite.rect = pygame.Rect((*position,), (*sprite.mask.get_size(),))
         self.all_sprites.add(sprite)
         if sprite_groups != []:
             for sprite_group in sprite_groups:
                 sprite_group.add(sprite)
         return sprite
 
-    def floor(self, position, size=[10, 10]) -> pygame.sprite.Sprite:
+    def floor(self, position) -> pygame.sprite.Sprite:
         sprite_groups = [self.wall_sprites]
         rel_path = '/assets/sprites/wall/wall_800x60.png'
         floor_path = self.settings['path'] + rel_path
-        return self.get_sprite(floor_path, position, size, sprite_groups)
+        return self.get_sprite(floor_path, position, sprite_groups)
 
-    def border(self, x1, y1, x2, y2) -> pygame.sprite.Sprite:
-        if x1 == x2:
-            return self.floor([x1, y1], [1, y2 - y1])
-        else:
-            return self.wall([x1, y1], [x2 - x1, 1])
-
-    def wall(self, position, size=[10, 10]) -> pygame.sprite.Sprite:
+    def wall(self, position) -> pygame.sprite.Sprite:
         sprite_groups = [self.wall_sprites]
         rel_path = '/assets/sprites/wall/wall_60x595.png'
         wall_path = self.settings['path'] + rel_path
-        return self.get_sprite(wall_path, position, size, sprite_groups)
+        return self.get_sprite(wall_path, position, sprite_groups)
 
-    def exit(self, position, size) -> pygame.sprite.Sprite:
+    def exit(self, position) -> pygame.sprite.Sprite:
         sprite_groups = [self.exit_sprites]
         rel_path = '/assets/sprites/icons/reward/trophey.png'
         trophey_path = self.settings['path'] + rel_path
-        return self.get_sprite(trophey_path, position, size, sprite_groups)
+        return self.get_sprite(trophey_path, position, sprite_groups)
 
-    def thorn(self, position, size) -> pygame.sprite.Sprite:
+    def thorn(self, position) -> pygame.sprite.Sprite:
         sprite_groups = [self.trap_sprites]
         rel_path = '/assets/sprites/traps/thorn.png'
         thorn_path = self.settings['path'] + rel_path
-        return self.get_sprite(thorn_path, position, size, sprite_groups)
+        return self.get_sprite(thorn_path, position, sprite_groups)
+
+    def brick(self, position):
+        sprite_groups = [self.wall_sprites]
+        rel_path = '/assets/sprites/brick/brick.png'
+        brick_path = self.settings['path'] + rel_path
+        return self.get_sprite(brick_path, position, sprite_groups)
+
+    def borders(self):
+        self.floor([0, 0])
+        self.floor([0, 470])
+        self.wall([0, 0])
+        self.wall([750, 0])
 
     def game_cycle(self) -> None:
         running = True
