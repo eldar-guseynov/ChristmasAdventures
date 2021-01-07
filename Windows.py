@@ -62,7 +62,7 @@ class Level(Window):
      '''
     __slots__ = ['santa', 'all_sprites', 'exit_sprites',
                  'gui_sprites', 'wall_sprites', 'sprite_groups', 'trap_sprites',
-                 'move_direction', 'is_jumping', 'is_sitting']
+                 'move_direction', 'is_jumping', 'is_sitting', 'start_hit_points']
 
     def __init__(self, settings: dict):
         super().__init__(settings, mode='level')
@@ -86,6 +86,7 @@ class Level(Window):
         self.santa: Player = Player([65, self.settings['window_size'][1] - 216],
                                     2, self.settings['skin'], self.all_sprites,
                                     self.settings)
+        self.start_hit_points = self.santa.hit_points
 
     def get_sprite(self, image, position,
                    sprite_groups=[]) -> pygame.sprite.Sprite:
@@ -117,9 +118,22 @@ class Level(Window):
         trophey_path = self.settings['path'] + rel_path
         return self.get_sprite(trophey_path, position, sprite_groups)
 
-    def thorn(self, position) -> pygame.sprite.Sprite:
+    def thorn(self, position, turn='top') -> pygame.sprite.Sprite:
         sprite_groups = [self.trap_sprites]
-        rel_path = '/assets/sprites/traps/thorn.png'
+        if turn == 'top':
+            rel_path = '/assets/sprites/traps/thorn.png'
+        elif turn == 'left':
+            rel_path = '/assets/sprites/traps/thorn_left.png'
+        elif turn == 'right':
+            rel_path = '/assets/sprites/traps/thorn_right.png'
+        elif turn == 'down':
+            rel_path = '/assets/sprites/traps/thorn_down.png'
+        thorn_path = self.settings['path'] + rel_path
+        return self.get_sprite(thorn_path, position, sprite_groups)
+
+    def thorns5x(self, position):
+        sprite_groups = [self.trap_sprites]
+        rel_path = '/assets/sprites/traps/thorns_x5.png'
         thorn_path = self.settings['path'] + rel_path
         return self.get_sprite(thorn_path, position, sprite_groups)
 
@@ -157,6 +171,12 @@ class Level(Window):
             pygame.display.update()
 
     def event_handler(self, event: pygame.event) -> bool:
+        '''<DEBUG CHEATS>'''
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            '''TELEPORT'''
+            self.santa.rect.x, self.santa.rect.y = event.pos
+            print(event.pos)
+        '''</DEBUG CHEATS>'''
         if event.type == pygame.KEYDOWN:
             keys = pygame.key.get_pressed()
             if keys[pygame.K_RIGHT]:
@@ -176,6 +196,27 @@ class Level(Window):
         self.move_direction = False
         self.is_jumping = False
         self.santa.skin_group.draw(self.screen)
+        self.draw_hearts()
+
+    def draw_hearts(self):
+        x = 0
+        hearts = pygame.sprite.Group()
+        for i in range(self.start_hit_points - self.santa.hit_points):
+            heart = pygame.sprite.Sprite()
+            image_path = self.settings['path'] +\
+                '/assets/sprites/icons/heart/red_heart.png'
+            heart.rect = pygame.Rect((*[20 + i * 13, 20],), (*[0, 0],))
+            heart.image = pygame.image.load(image_path)
+            hearts.add(heart)
+        hearts.draw(self.screen)
+        for i in range(self.santa.hit_points):
+            heart = pygame.sprite.Sprite()
+            image_path = self.settings['path'] +\
+                '/assets/sprites/icons/heart/red_heart.png'
+            heart.image = pygame.image.load(image_path)
+            heart.rect = pygame.Rect((*[20 + (i + x) * 15, 20],), (*[0, 0],))
+            hearts.add(heart)
+        hearts.draw(self.screen)
 
 
 class MainWindow(Window):

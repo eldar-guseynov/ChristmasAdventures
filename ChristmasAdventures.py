@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from Windows import MainWindow
-from Levels import FirstLevel
+from Levels import FirstLevel, SecondLevel
 from Utils import Settings
 
 import pygame
@@ -25,11 +25,12 @@ class GameManager:
         *start - Start game manager and get game class -> None
         *run_game - Launch game -> None
     '''
-    __slots__ = ['settings', 'level_number', 'hit_points', 'game']
+    __slots__ = ['settings', 'level_number', 'hit_points', 'game', 'levels']
 
     def __init__(self, settings: dict):
         self.settings: dict = settings
         self.level_number: int = 1
+        self.levels = {1: FirstLevel, 2: SecondLevel}
 
     def start(self, mode: str = '') -> None:
         '''
@@ -41,14 +42,18 @@ class GameManager:
         elif mode == 'settings':
             self.game = SettingsWindow(self.settings)
         elif mode == 'level':
-            self.game = FirstLevel(self.settings, 10)
+            self.game = SecondLevel(self.settings, 10)
         elif mode == 'win':
-            self.level_number += 1
             self.game = self.next_level()
         elif mode == 'lose':
             self.level_number = 1
             self.game = LoseWindow(self.settings)
         self.run_game()
+
+    def next_level(self):
+        self.level_number += 1
+        hit_points = self.game.santa.hit_points
+        return self.levels[self.level_number](self.settings, hit_points)
 
     def run_game(self) -> None:
         start_mode = self.game.mode
