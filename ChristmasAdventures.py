@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from Windows import MainWindow
-from Levels import FirstLevel, SecondLevel
+from Levels import FirstLevel, SecondLevel, ThirdLevel
 from Utils import Settings
 
 import pygame
@@ -30,7 +30,7 @@ class GameManager:
     def __init__(self, settings: dict):
         self.settings: dict = settings
         self.level_number: int = 1
-        self.levels = {1: FirstLevel, 2: SecondLevel}
+        self.levels = {1: FirstLevel, 2: SecondLevel, 3: ThirdLevel}
 
     def start(self, mode: str = '') -> None:
         '''
@@ -42,7 +42,7 @@ class GameManager:
         elif mode == 'settings':
             self.game = SettingsWindow(self.settings)
         elif mode == 'level':
-            self.game = SecondLevel(self.settings, 10)
+            self.game = FirstLevel(self.settings, 10)
         elif mode == 'win':
             self.game = self.next_level()
         elif mode == 'lose':
