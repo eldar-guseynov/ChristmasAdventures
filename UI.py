@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from Utils import DataBase
 
 import pygame_gui
@@ -15,6 +17,11 @@ class Text(pygame.font.Font):
         *font_size - Size of font: int
         *font_path - Path to font file: str
         *font_name - Font name in database (if have'nt path): str
+
+    Methods:
+        *draw - Draw itself on screen
+        *get_font - Load font from database
+        *get_text - Load rendered text
     '''
     __slots__ = ['settings', 'rendered_text', 'code_name']
 

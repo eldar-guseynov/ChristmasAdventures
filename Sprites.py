@@ -1,6 +1,10 @@
-from os.path import exists
+# -*- coding: utf-8 -*-
 
 from Utils import Sounds
+
+from os.path import exists
+from os import listdir
+from random import choice
 
 import pygame
 
@@ -9,7 +13,7 @@ class Sprite(pygame.sprite.Sprite):
     '''Base sprite class
 
     Initilization arguments: 
-        *position - Start position of sprite : str
+        *position - Start position of sprite : list
         *hit_points - Count of sprite lifes : int
         *skin_name - Opted skin : str
         *folder_path - Sprite folder path regarding game path: str
@@ -87,8 +91,29 @@ class Sprite(pygame.sprite.Sprite):
 
 
 class Player(Sprite):
+    '''Player sprite class
+
+    Initilization arguments: 
+        *all_sprites - Group with all sprites :pygame.sprite.Group         
+        *position - Start position of sprite : list
+        *hit_points - Count of sprite lifes : int
+        *skin_name - Opted skin : str
+
+    Methods:
+        *change_player_skin - Change player skin with selected
+        *die - Teleport to spawn, decrease hp
+        *get_collide_object- Return collided object
+        *get_skins - Return dict with skins
+        *is_collide - Check is player collided
+        *move - Move player
+        *update - Update player info
+    '''
+
+    __slots__ = ['skins', 'sounds', 'state', 'move_speed', 'particles',
+                 'jump_speed']
+
     def __init__(self, position: list, hit_points: int, skin_name: str,
-                 all_sprites, settings):
+                 all_sprites: pygame.sprite.Group, settings: dict):
         super().__init__(position, hit_points, skin_name,
                          'assets/sprites/santa', all_sprites, settings)
         self.setup(self.get_skins()['stand'])
@@ -96,9 +121,9 @@ class Player(Sprite):
         self.state: dict = {'flip': False, 'stand': False}
         db_path: str = self.settings['path'] + '/assets/database/'
         self.sounds = Sounds(db_path)
-        self.move_speed = 0
-        self.jump_speed = 0
+        self.move_speed, self.jump_speed = 0, 0
         self.to_spawn()
+        self.particles = []
         self.set_group()
 
     def change_player_skin(self, skin_type: str = '') -> None:
@@ -120,8 +145,13 @@ class Player(Sprite):
         self.hit_points -= 1
         self.state['stand'] = False
 
-    def update(self, sprite_group, move_direction=False,
+    def update(self, sprite_group, all_sprites,
+               move_direction=False,
                is_jumping=False) -> None:
+        for particle in self.particles:
+            particle.update()
+        if len(self.particles) >= 30:
+            self.particles = self.particles[4:]
         if is_jumping and self.state['stand']:
             self.jump_speed = -self.settings['jump_power']
         if move_direction == 'left':
@@ -133,13 +163,16 @@ class Player(Sprite):
         if not self.state['stand']:
             self.jump_speed += self.settings['gravity']
         self.state['stand'] = False
-        self.move(sprite_group)
+        self.move(sprite_group, all_sprites)
 
-    def move(self, sprite_group) -> None:
+    def move(self, sprite_group, all_sprites) -> None:
         self.rect.y += self.jump_speed
         if self.is_collide(sprite_group):
             wall = self.get_collide_object(sprite_group)
             if self.jump_speed > 0:
+                if self.jump_speed != 1:
+                    self.particles.append(Particles([self.rect.x, self.rect.y],
+                                                    self.settings, all_sprites))
                 self.rect.bottom = wall.rect.top
                 self.jump_speed = 0
                 self.state['stand'] = True
@@ -166,8 +199,54 @@ class Player(Sprite):
                 return True
         return False
 
-    def get_collide_object(self, sprite_group):
+    def get_collide_object(self, sprite_group) -> pygame.sprite.Sprite or bool:
         for sprite in sprite_group:
             if pygame.sprite.collide_mask(self, sprite):
                 return sprite
         return False
+
+
+class Particles(pygame.sprite.Sprite):
+    '''Player sprite class
+
+    Initilization arguments: 
+        *position - Start position of sprite : list
+        *settings - Settings from 'Settings.setting' class: dict
+        *all_sprites - Group with all sprites :pygame.sprite.Group         
+
+    Methods:
+        *get_particles - Return particles list
+        *update - Update particle position
+    '''
+    __slots__ = ['settings', 'velocity']
+
+    def __init__(self, position: list, settings: dict,
+                 all_sprites: pygame.sprite.Group):
+        super().__init__(all_sprites)
+        self.settings: dict = settings
+        self.image: pygame.sprite.Sprite = choice(self.get_particles())
+        self.rect: pygame.Rect = self.image.get_rect()
+        numbers = range(-5, 6)
+        self.velocity = [choice(numbers), choice(numbers)]
+        self.rect.x, self.rect.y = position
+
+    def get_particles(self) -> list:
+        load_image = pygame.image.load
+        particles_rel_path = '/assets/sprites/particles/'
+        particles_path: str = self.settings['path'] + particles_rel_path
+        particles = [load_image(particles_path + file)
+                     for file in listdir(particles_path)]
+        for scale in (2, 4, 5, 7):
+            particles.append(
+                pygame.transform.scale(choice(particles), (scale, scale)))
+        return particles
+
+    def update(self) -> None:
+        self.velocity[1] += 1
+        self.rect.x += self.velocity[0]
+        self.rect.y += self.velocity[1]
+        if not self.rect.colliderect(
+            (0, 0, self.settings['window_size'][0],
+             self.settings['window_size'][1])):
+            self.kill()
+

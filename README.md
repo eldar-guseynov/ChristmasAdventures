@@ -4,9 +4,7 @@
 
 Santa was trapped in dungeon! What you gonna do?  
 Try to ***escape*** and have ***fun***!
-
-> TODO: GIF/PNG from game
-
+![Second level](https://i.imgur.com/1Ow2MrN.png)
 This game was written using Python and libary PyGame, inspired by *[Trap Adventure 2](http://trapadventure2.org/)*
 
 ## How to play?
@@ -55,4 +53,9 @@ Run builds/win/ChristmasAdventures.exe
 
 
 ## Some screenshots...
-> TODO: Add Some screenshots
+![Main menu](https://i.imgur.com/pnNN4TU.png)
+![First level](https://i.imgur.com/mGWVcD2.png)
+![Third level](https://i.imgur.com/V8JV70w.png)
+![FAQ screenshot](https://i.imgur.com/Svu5xkI.png)
+
+Readme translations: [*Russian*](https://github.com/Ulbandus/ChristmasAdventures/blob/master/docs/readme_ru.md)

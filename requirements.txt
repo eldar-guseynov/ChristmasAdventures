@@ -1,2 +1,3 @@
 pygame
+pyganim
 pygame_gui

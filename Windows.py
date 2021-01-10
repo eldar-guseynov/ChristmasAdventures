@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
+
 import pygame
 import pygame_gui
 import pyganim
 from Utils import DataBase, Sounds
 from UI import Text, Button, Label, Message
-from Sprites import Player
+from Sprites import Player, Particles
 
 
 class Window:
@@ -95,8 +97,8 @@ class Level(Window):
 
     def get_animations(self):
         self.anims['chainsaw'] = pyganim.PygAnimation(
-            [(self.settings['path'] +
-              f'/assets/sprites/traps/chainsaw/chainsaw_{i}.png', 100)
+            [(self.settings['path']
+              + f'/assets/sprites/traps/chainsaw/chainsaw_{i}.png', 100)
              for i in range(0, 6)])
         self.anims['chainsaw'].play()
         self.anims['vulkan'] = pyganim.PygAnimation(
@@ -189,8 +191,8 @@ class Level(Window):
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-                    break
-                running = self.event_handler(event)
+                else:
+                    running = self.event_handler(event)
             if self.santa.is_collide(self.sprite_groups['exit']):
                 self.mode = 'win'
                 running = False
@@ -225,7 +227,8 @@ class Level(Window):
     def draw(self) -> None:
         self.all_sprites.draw(self.screen)
         self.santa.update(
-            self.sprite_groups['wall'], self.move_direction, self.is_jumping)
+            self.sprite_groups['wall'], self.all_sprites,
+            self.move_direction, self.is_jumping)
         self.move_direction = False
         self.is_jumping = False
         self.santa.skin_group.draw(self.screen)
@@ -344,3 +347,56 @@ class MainWindow(Window):
         return (running, faq)
 
 
+class LoseWindow(Window):
+    def __init__(self, settings: dict):
+        super().__init__(settings, mode='lose_window')
+        self.buttons = self.get_buttons()
+
+    def get_buttons(self) -> dict:
+        images_name_list = ['replay']
+        buttons = {}
+        space = self.settings['window_size'][0] // len(images_name_list)
+        for index, name in enumerate(images_name_list):
+            button = Button(
+                '', name, self.manager,
+                [5 + index * space, self.settings['window_size'][1] - 55])
+            gui_path = self.settings['path'] + '/assets/sprites/icons/gui/'
+            button.set_icon(gui_path + name + '.png')
+            buttons[name] = button
+        return buttons
+
+    def game_cycle(self) -> None:
+        running = True
+        faq = None
+        while running:
+            time_delta = self.clock.tick(60) / 1000.0
+            for event in pygame.event.get():
+                running = self.event_handler(event, running)
+            self.manager.process_events(event)
+            self.clock.tick(self.fps)
+            self.screen.blit(self.background_filler, [0, 0])
+            self.manager.draw_ui(self.screen)
+            self.manager.update(time_delta)
+            pygame.display.update()
+
+    def is_button_event(self, event) -> bool:
+        if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+            if event.ui_element.text == '':
+                for button_name in self.buttons:
+                    if event.ui_element == self.buttons[button_name]:
+                        return True
+        return False
+
+    def event_handler(self, event, running) -> (bool, None):
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_p:
+                self.mode = 'level'
+                running = False
+        elif event.type == pygame.USEREVENT and self.is_button_event(event):
+            button_name = event.ui_element.code_name
+            if button_name == 'replay':
+                self.mode = 'level'
+                running = False
+        return running
