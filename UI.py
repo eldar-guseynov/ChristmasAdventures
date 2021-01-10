@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from Utils import DataBase
-
 import pygame_gui
 import pygame
+
+from Utils import DataBase
 
 
 class Text(pygame.font.Font):
     '''Class for showing text on screen
 
-    Initilization arguments: 
+    Initilization arguments:
         *text - Text which you wanna display: str
         *code_name - Special name for Text object for identefication: str
         *position - Text position on screen [x, y]: list
@@ -60,7 +60,7 @@ class Text(pygame.font.Font):
 class Message(pygame_gui.windows.UIMessageWindow):
     '''Base Message (Message box) class
 
-    Initilization arguments: 
+    Initilization arguments:
         *text - Message text: str
         *code_name - Special name for Message box for identefication: str
         *manager - pygame_gui manager: pygame_gui.UIManager
@@ -91,7 +91,7 @@ class Message(pygame_gui.windows.UIMessageWindow):
 class Label(pygame_gui.elements.UIButton):
     '''Base label class
 
-    Initilization arguments: 
+    Initilization arguments:
         *text - Label text: str
         *code_name - Special name for label for identefication: str
         *manager - pygame_gui manager: pygame_gui.UIManager
@@ -132,7 +132,7 @@ class Label(pygame_gui.elements.UIButton):
 class Button(pygame_gui.elements.UIButton):
     '''Base button class
 
-    Initilization arguments: 
+    Initilization arguments:
         *text - Button text: str
         *code_name - Special name for button for identefication: str
         *manager - pygame_gui manager: pygame_gui.UIManager

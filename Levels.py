@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from Windows import Level
-
 import pygame
+
+from Windows import Level
 
 
 class FirstLevel(Level):
@@ -114,7 +114,7 @@ class ThirdLevel(Level):
 
     Initilization arguments:
         *settings - Dict with settings from class Settings: dict
-        *hit_points - Count of player lifes : int  
+        *hit_points - Count of player lifes : int
 
     Methods:
         *get_sprites - Load level objects
@@ -201,4 +201,3 @@ class ThirdLevel(Level):
                 self.santa.skin_group.draw(self.screen)
                 self.draw_hearts()
             pygame.display.update()
-

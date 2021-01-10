@@ -11,7 +11,7 @@ import pygame
 class DataBase:
     '''Class for working with sqlite3 databases
 
-    Initilization arguments: 
+    Initilization arguments:
         *db_folder_path - Path to folder with databases regarding C://: str
 
     Methods:
@@ -59,7 +59,7 @@ class DataBase:
 class Settings:
     '''Class wich can parse and save settings from setiings file (ext: .ini)
 
-    Initilization arguments: 
+    Initilization arguments:
         *settings_file_name - Path to settings file: str
 
     Methods:
@@ -101,7 +101,7 @@ class Settings:
 class Sounds:
     '''Class for working with sqlite3 databases
 
-    Initilization arguments: 
+    Initilization arguments:
         *database - Path sound database: str
 
     Methods:

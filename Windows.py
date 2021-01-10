@@ -3,21 +3,22 @@
 import pygame
 import pygame_gui
 import pyganim
-from Utils import DataBase, Sounds
+
 from UI import Text, Button, Label, Message
-from Sprites import Player, Particles
+from Sprites import Player
+from Utils import DataBase
 
 
 class Window:
     '''Base window class
 
-    Initilization arguments: 
+    Initilization arguments:
         *settings - Settings from 'Settings.setting' class: dict
-        *mode - Mode of window //examples 'main_window', 'login_window' 
+        *mode - Mode of window //examples 'main_window', 'login_window'
                 and etc : str
 
     Methods:
-        *get_screen - Return window with selected title and size: pygame.Surface 
+        *get_screen - Return window with selected title and size: pygame.Surface
     '''
     __slots__ = ['settings', 'fps', 'mode', 'background_filler',
                  'text_filler', 'clock', 'screen', 'manager',
@@ -55,7 +56,7 @@ class Window:
 class Level(Window):
     '''Base Level class
 
-    Initilization arguments: 
+    Initilization arguments:
         *settings - Dict with settings from class Settings: dict
 
     Methods:
@@ -97,8 +98,8 @@ class Level(Window):
 
     def get_animations(self):
         self.anims['chainsaw'] = pyganim.PygAnimation(
-            [(self.settings['path']
-              + f'/assets/sprites/traps/chainsaw/chainsaw_{i}.png', 100)
+            [(self.settings['path'] +
+              f'/assets/sprites/traps/chainsaw/chainsaw_{i}.png', 100)
              for i in range(0, 6)])
         self.anims['chainsaw'].play()
         self.anims['vulkan'] = pyganim.PygAnimation(
@@ -238,7 +239,6 @@ class Level(Window):
             self.anims[animation_key].blit(self.screen, (*position,))
 
     def draw_hearts(self):
-        x = 0
         hearts = pygame.sprite.Group()
         for i in range(self.start_hit_points - self.santa.hit_points):
             heart = pygame.sprite.Sprite()
@@ -312,9 +312,9 @@ class MainWindow(Window):
             time_delta = self.clock.tick(60) / 1000.0
             for event in pygame.event.get():
                 running, faq = self.event_handler(event, running, faq)
+                self.manager.process_events(event)
             if faq != None and not faq.is_alive():
                 faq.kill()
-            self.manager.process_events(event)
             self.clock.tick(self.fps)
             self.screen.blit(self.background_filler, [0, 0])
             self.draw()
@@ -367,12 +367,11 @@ class LoseWindow(Window):
 
     def game_cycle(self) -> None:
         running = True
-        faq = None
         while running:
             time_delta = self.clock.tick(60) / 1000.0
             for event in pygame.event.get():
                 running = self.event_handler(event, running)
-            self.manager.process_events(event)
+                self.manager.process_events(event)
             self.clock.tick(self.fps)
             self.screen.blit(self.background_filler, [0, 0])
             self.manager.draw_ui(self.screen)
