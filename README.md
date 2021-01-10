@@ -22,12 +22,10 @@ python3 ChristmasAdventures
 <img align="left" width="30" height="30" src="https://i.imgur.com/tD6vH32.png">
 Windows:
 
-> TODO: Add branch bin/windows and create change short link 
-
 ```
-Go to https://goo.su/3hmQ
+Go to https://goo.su/3RTJ
 Unpack archive
-Run builds/win/ChristmasAdventures.exe
+Run ChristmasAdventures.exe
 ```
 
 ## Controls
