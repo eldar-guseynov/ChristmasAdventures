@@ -6,7 +6,7 @@ import pyganim
 
 from UI import Text, Button, Label, Message
 from Sprites import Player
-from Utils import DataBase
+from Utils import DataBase, Sounds
 
 
 class Window:
@@ -22,7 +22,7 @@ class Window:
     '''
     __slots__ = ['settings', 'fps', 'mode', 'background_filler',
                  'text_filler', 'clock', 'screen', 'manager',
-                 'database']
+                 'database', 'sounds']
 
     def __init__(self, settings: dict, mode: str):
         pygame.event.set_allowed(
@@ -30,6 +30,8 @@ class Window:
              pygame.USEREVENT, pygame.MOUSEBUTTONUP])
         pygame.key.set_repeat(1, 50)
         self.settings: dict = settings
+        db_path: str = self.settings['path'] + '/assets/database/'
+        self.sounds = Sounds(db_path)
         self.manager = pygame_gui.UIManager(self.settings['window_size'])
         db_path = f'{self.settings["path"]}/assets/database/'
         self.database = DataBase(db_path)
@@ -67,7 +69,7 @@ class Level(Window):
     __slots__ = ['santa', 'all_sprites', 'exit_sprites',
                  'gui_sprites', 'wall_sprites', 'sprite_groups', 'trap_sprites',
                  'move_direction', 'is_jumping', 'is_sitting', 'start_hit_points',
-                 'animation_list', 'anims']
+                 'animation_list', 'anims', 'brick_sprites']
 
     def __init__(self, settings: dict):
         super().__init__(settings, mode='level')
@@ -79,9 +81,11 @@ class Level(Window):
         self.gui_sprites = pygame.sprite.Group()
         self.wall_sprites = pygame.sprite.Group()
         self.trap_sprites = pygame.sprite.Group()
+        self.brick_sprites = pygame.sprite.Group()
         self.anims = {}
         self.sprite_groups = {'all': self.all_sprites,
                               'exit': self.exit_sprites,
+                              'brick': self.brick_sprites,
                               'gui': self.gui_sprites,
                               'wall': self.wall_sprites,
                               'trap': self.trap_sprites}
@@ -98,8 +102,8 @@ class Level(Window):
 
     def get_animations(self):
         self.anims['chainsaw'] = pyganim.PygAnimation(
-            [(self.settings['path'] +
-              f'/assets/sprites/traps/chainsaw/chainsaw_{i}.png', 100)
+            [(self.settings['path']
+              + f'/assets/sprites/traps/chainsaw/chainsaw_{i}.png', 100)
              for i in range(0, 6)])
         self.anims['chainsaw'].play()
         self.anims['vulkan'] = pyganim.PygAnimation(
@@ -161,7 +165,7 @@ class Level(Window):
         return self.get_sprite(thorn_path, position, sprite_groups)
 
     def brick(self, position):
-        sprite_groups = [self.wall_sprites]
+        sprite_groups = [self.wall_sprites, self.brick_sprites]
         rel_path = '/assets/sprites/brick/brick.png'
         brick_path = self.settings['path'] + rel_path
         return self.get_sprite(brick_path, position, sprite_groups)
@@ -200,6 +204,7 @@ class Level(Window):
             if self.santa.is_collide(self.sprite_groups['trap']):
                 self.santa.die()
             if self.santa.hit_points <= 0:
+                self.sounds.play('lose')
                 self.mode = 'lose'
                 running = False
             self.clock.tick(self.fps)
@@ -229,7 +234,8 @@ class Level(Window):
         self.all_sprites.draw(self.screen)
         self.santa.update(
             self.sprite_groups['wall'], self.all_sprites,
-            self.move_direction, self.is_jumping)
+            self.move_direction, self.is_jumping, self.is_sitting)
+        self.is_sitting = False
         self.move_direction = False
         self.is_jumping = False
         self.santa.skin_group.draw(self.screen)
@@ -272,6 +278,7 @@ class MainWindow(Window):
         self.main_text = Text('Christmas Adventures', 'main_text', settings)
         self.buttons = self.get_buttons()
         self.get_labels()
+        self.sounds.play('theme')
 
     def draw(self) -> None:
         self.main_text.draw(self.screen)
@@ -344,6 +351,8 @@ class MainWindow(Window):
             elif button_name == 'play':
                 self.mode = 'level'
                 running = False
+        if not running:
+            self.sounds.stop_all()
         return (running, faq)
 
 
@@ -355,6 +364,9 @@ class LoseWindow(Window):
         background_path = self.settings['path'] + \
             '/assets/sprites/background/main_window_background.png'
         self.background_filler = pygame.image.load(background_path)
+
+        self.sounds.stop_all()
+        self.sounds.fast_play('lose')
 
     def get_buttons(self) -> list:
         images_name_list = ['replay'] * 10
@@ -403,8 +415,38 @@ class LoseWindow(Window):
                 running = False
         elif event.type == pygame.USEREVENT and self.is_button_event(event):
             button_name = event.ui_element.code_name
-            print(button_name)
             if button_name == 'replay':
                 self.mode = 'level'
                 running = False
+        if not running:
+            self.sounds.stop_all()
+        return running
+
+
+class EndWindow(Window):
+    def __init__(self, settings: dict):
+        super().__init__(settings, mode='win_window')
+        background_path = self.settings['path'] + \
+            '/assets/sprites/background/win_background.png'
+        self.background_filler = pygame.image.load(background_path)
+        self.sounds.play('win')
+
+    def game_cycle(self) -> None:
+        running = True
+        while running:
+            time_delta = self.clock.tick(60) / 1000.0
+            for event in pygame.event.get():
+                running = self.event_handler(event, running)
+            self.clock.tick(self.fps)
+            self.screen.blit(self.background_filler, [0, 0])
+            pygame.display.update()
+
+    def event_handler(self, event, running) -> bool:
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            self.mode = 'main_window'
+            running = False
+        if not running:
+            self.sounds.stop_all()
         return running
