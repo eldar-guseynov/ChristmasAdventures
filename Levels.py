@@ -3,6 +3,9 @@
 import pygame
 
 from Windows import Level
+from UI import Message
+
+from random import randrange
 
 
 class FirstLevel(Level):
@@ -169,11 +172,15 @@ class ThirdLevel(Level):
         running = True
         i = 0
         while running:
+            time_delta = self.clock.tick(60) / 1000.0
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
                 else:
+                    self.manager.process_events(event)
                     running = self.event_handler(event)
+                    if not running:
+                        break
             if self.santa.is_collide(self.sprite_groups['exit']):
                 self.mode = 'win'
                 running = False
@@ -182,7 +189,6 @@ class ThirdLevel(Level):
                 running = False
             elif self.santa.is_collide(self.sprite_groups['trap']):
                 self.santa.die()
-
             self.clock.tick(self.fps)
             self.screen.blit(self.background_filler, [0, 0])
 
@@ -201,6 +207,8 @@ class ThirdLevel(Level):
                 self.is_sitting = False
                 self.santa.skin_group.draw(self.screen)
                 self.draw_hearts()
+            self.manager.draw_ui(self.screen)
+            self.manager.update(time_delta)
             pygame.display.update()
 
 
@@ -237,11 +245,15 @@ class FourthLevel(Level):
     def game_cycle(self) -> None:
         running = True
         while running:
+            time_delta = self.clock.tick(60) / 1000.0
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
                 else:
+                    self.manager.process_events(event)
                     running = self.event_handler(event)
+                    if not running:
+                        break
             if self.santa.is_collide(self.sprite_groups['exit']):
                 self.mode = 'win'
                 running = False
@@ -254,14 +266,26 @@ class FourthLevel(Level):
             self.clock.tick(self.fps)
             self.screen.blit(self.background_filler, [0, 0])
             self.draw()
+            self.manager.draw_ui(self.screen)
+            self.manager.update(time_delta)
             pygame.display.update()
+
+    def in_allowed_zone(self, position):
+        x = position[0]
+        y = position[1]
+        if x in range(0, 64) and y in range(45, 225):
+            return False
+        elif x in range(684, 753) and y in range(50, 96):
+            return False
+        return True
 
     def event_handler(self, event: pygame.event) -> bool:
         last_brick_pos = (0, 0)
         if event.type == pygame.MOUSEBUTTONDOWN and self.bricks <= 3:
-            self.brick([*event.pos])
-            self.bricks += 1
-            last_brick_pos = event.pos
+            if self.in_allowed_zone(event.pos):
+                self.brick([*event.pos])
+                self.bricks += 1
+                last_brick_pos = event.pos
         if event.type == pygame.KEYDOWN:
             keys = pygame.key.get_pressed()
             if keys[pygame.K_RIGHT]:
@@ -272,5 +296,49 @@ class FourthLevel(Level):
                 self.is_sitting = True
             if keys[pygame.K_UP]:
                 self.is_jumping = True
+        elif event.type == pygame.USEREVENT and self.is_button_event(event):
+            button_name = event.ui_element.code_name
+            if button_name == 'faq':
+                Message(self.texts['build_level_tip'], 'Help',
+                        self.manager, [170, 100], [400, 300], 'help_msg')
+            elif button_name == 'menu':
+                self.mode = 'main_window'
+                return False
+            elif button_name == 'replay':
+                self.mode = 'replay'
+                return False
         return True
+
+
+class FifthLevel(Level):
+    def __init__(self, settings: dict, hit_points: int):
+        super().__init__(settings)
+        self.santa.hit_points: int = hit_points
+        self.get_sprites()
+
+    def get_sprites(self):
+        # Borders
+        self.borders()
+        # Traps
+        self.box_glover([650, 60])
+        for x in range(61, 700, 16):
+            self.thorn([x, 55], 'down')
+            if (x - 61) % 128 == 0:
+                self.ball([x, randrange(-100, -30)])
+        self.exit([707, 200])
+        self.thorns5x([192, 405])
+        self.thorns5x([348, 405])
+        self.thorns5x([513, 405])
+        self.thorns5x([661, 405])
+        self.brick([665, 238])
+        self.brick([63, 284])
+        self.brick([230, 342])
+        self.brick([270, 166])
+        self.brick([302, 198])
+        self.brick([333, 230])
+        self.brick([364, 261])
+        self.brick([541, 127])
+
+
+
 

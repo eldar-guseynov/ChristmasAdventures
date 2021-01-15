@@ -3,6 +3,7 @@
 from os.path import exists
 from random import choice
 from os import listdir
+from random import randrange
 
 import pygame
 
@@ -172,7 +173,7 @@ class Player(Sprite):
         for particle in self.particles:
             particle.update()
         if len(self.particles) >= 30:
-            self.particles = self.particles[4:]
+            self.particles = self.particles[8:]
         if is_sitting:
             self.sit()
         if is_jumping and self.state['stand']:
@@ -187,17 +188,26 @@ class Player(Sprite):
         else:
             self.move_speed = 0
         if not self.state['stand']:
-            self.jump_speed += self.settings['gravity']
+            self.jump_speed += self.gravity
         if self.jump_speed != 0 and self.state['stand']:
             self.sounds.play('jump')
+            self.jump_skin()
         if self.move_speed != 0 and self.state['stand']:
             self.sounds.play('step')
         if self.move_speed < 0:
             self.flip('left')
         if self.move_speed > 0:
             self.flip('right')
+        if self.jump_speed == 0:
+            self.stand()
         self.state['stand'] = False
         self.move(sprite_group, all_sprites)
+
+    def jump_skin(self):
+        self.change_player_skin('jump')
+        old_flip_dir = self.flip_direction
+        self.flip_direction = 'right'
+        self.flip(old_flip_dir)
 
     def move(self, sprite_group, all_sprites) -> None:
         self.rect.y += self.jump_speed
@@ -283,3 +293,25 @@ class Particles(pygame.sprite.Sprite):
         if not self.rect.colliderect((
                 0, 0, window_size[0], window_size[1])):
             self.kill()
+
+
+class Ball(pygame.sprite.Sprite):
+    def __init__(self, position: list, settings: dict):
+        super().__init__()
+        self.settings: dict = settings
+        self.image: pygame.sprite.Sprite = self.get_image()
+        self.rect: pygame.Rect = self.image.get_rect()
+        self.rect.x, self.rect.y = position
+
+    def get_image(self) -> list:
+        load_image = pygame.image.load
+        image_rel_path = '/assets/sprites/traps/ball/ball_0.png'
+        image_path: str = self.settings['path'] + image_rel_path
+        return load_image(image_path)
+
+    def update(self) -> None:
+        window_size = self.settings['window_size']
+        self.rect.y += 15
+        if not self.rect.colliderect((
+                0, 0, window_size[0], window_size[1] + 400)):
+            self.rect.y = randrange(-400, -30)
