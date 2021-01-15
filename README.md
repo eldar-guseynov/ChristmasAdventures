@@ -59,4 +59,5 @@ Run builds/win/ChristmasAdventures.exe
 ![First level](https://i.imgur.com/Gm0ZrLS.png)
 ![Third level](https://i.imgur.com/wiS4Qgn.png)
 ![Second level](https://i.imgur.com/ZdXRqkE.png)
+![GIF](https://i.imgur.com/H6KucGo.gif)
 Readme translations: [*Russian*](https://github.com/Ulbandus/ChristmasAdventures/blob/master/docs/readme_ru.md)
