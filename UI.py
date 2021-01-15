@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
-
-import pygame_gui
 import pygame
+import pygame_gui
 
 from Utils import DataBase
 
@@ -12,8 +10,8 @@ class Text(pygame.font.Font):
     Initilization arguments:
         *text - Text which you wanna display: str
         *code_name - Special name for Text object for identefication: str
-        *position - Text position on screen [x, y]: list
         *settings - Dict with settings from class Settings: dict
+        *position - Text position on screen [x, y]: list
         *font_size - Size of font: int
         *font_path - Path to font file: str
         *font_name - Font name in database (if have'nt path): str
@@ -29,8 +27,8 @@ class Text(pygame.font.Font):
                  font_size=50, font_path=None, font_name=None):
         self.settings = settings
         self.code_name = code_name
-        if font_path == None:
-            if font_name == None:
+        if font_path is None:
+            if font_name is None:
                 font_name = 'christmas'
             font_path = self.get_font(font_name)
         super().__init__(font_path, font_size)
@@ -43,8 +41,9 @@ class Text(pygame.font.Font):
         font_path = f"{self.settings['path']}/{database.get_font(font_name)}"
         return font_path
 
-    def get_text(self, text: str,
-                 position: list = None) -> (pygame.font.Font.render, (int, int)):
+    def get_text(
+            self, text: str,
+            position: list = None) -> (pygame.font.Font.render, (int, int)):
         rendered_text = self.render(text, True, (255, 255, 255))
         if position == None:
             text_x = self.settings['window_size'][0] // 2 -\

@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
+from random import randrange
 
 import pygame
 
-from Windows import Level
 from UI import Message
-
-from random import randrange
+from Windows import Level
 
 
 class FirstLevel(Level):
@@ -93,7 +91,6 @@ class SecondLevel(Level):
         ''' Traps '''
         # Vulkans
         self.vulkan([496, 438])
-
         # Thorns
         self.thorn([100, 384])
         self.thorn([116, 384])
@@ -102,10 +99,9 @@ class SecondLevel(Level):
         self.thorn([416, 184])
         self.thorn([635, 300], turn='left')
         self.thorn([683, 300], turn='right')
-
         # Thorns5x
         self.thorns5x([100, 405])
-        '''       '''
+
         # Exit
         self.exit([715, 189])
 
@@ -113,7 +109,7 @@ class SecondLevel(Level):
 class ThirdLevel(Level):
     '''Third level
     Have 12 thorns, 1 exit, 4 borders, 71 Bricks, 1 vulkan, 1 chainsaw
-    Difficulty - normal
+    Difficulty - hard
 
     Initilization arguments:
         *settings - Dict with settings from class Settings: dict
@@ -157,13 +153,10 @@ class ThirdLevel(Level):
         # Thorns
         for x in range(314, 667, 32):  # 12
             self.thorn([x, 384])
-
         # Chainsaws
         self.chainsaw([162, 449])
-
         # Vulkans
         self.vulkan([245, 440])
-        '''       '''
 
         # Exit
         self.exit([607, 65])
@@ -194,6 +187,7 @@ class ThirdLevel(Level):
 
             i += 1
             if i > 50:
+                # Blindness effect
                 if i > 200:
                     i = 0
                 self.draw()
@@ -202,9 +196,7 @@ class ThirdLevel(Level):
                     self.sprite_groups['wall'],
                     self.all_sprites,
                     self.move_direction, self.is_jumping, self.is_sitting)
-                self.move_direction = False
-                self.is_jumping = False
-                self.is_sitting = False
+                self.reset()
                 self.santa.skin_group.draw(self.screen)
                 self.draw_hearts()
             self.manager.draw_ui(self.screen)
@@ -213,9 +205,9 @@ class ThirdLevel(Level):
 
 
 class FourthLevel(Level):
-    '''Third level
-    Have 12 thorns, 1 exit, 4 borders, 71 Bricks, 1 vulkan, 1 chainsaw
-    Difficulty - normal
+    '''Fourth level
+    Have 17 thorns, 1 exit, ? bricks
+    Difficulty - easy
 
     Initilization arguments:
         *settings - Dict with settings from class Settings: dict
@@ -223,24 +215,36 @@ class FourthLevel(Level):
 
     Methods:
         *get_sprites - Load level objects
-        *game_cycle - Game cycle with blindness effect
+        *in_allowed_zone - Check, can player place break or not
+        *event_handler - Handle events, build players bricks
     '''
     __slots__ = ['bricks']
 
     def __init__(self, settings: dict, hit_points: int):
         super().__init__(settings)
-        self.bricks = 0
+        self.bricks: int = 0
         self.santa.hit_points: int = hit_points
         self.get_sprites()
 
     def get_sprites(self) -> None:
         # Borders
         self.borders()
-        # Traps
-        for x in range(100, 709, 32):
+
+        # Thorns
+        for x in range(100, 709, 32):  # 17
             self.thorn([x, 453])
+
         # Exit
         self.exit([722, 77])
+
+    def in_allowed_zone(self, position) -> bool:
+        x = position[0]
+        y = position[1]
+        if x in range(0, 64) and y in range(45, 225):
+            return False
+        elif x in range(684, 753) and y in range(50, 96):
+            return False
+        return True
 
     def game_cycle(self) -> None:
         running = True
@@ -270,22 +274,11 @@ class FourthLevel(Level):
             self.manager.update(time_delta)
             pygame.display.update()
 
-    def in_allowed_zone(self, position):
-        x = position[0]
-        y = position[1]
-        if x in range(0, 64) and y in range(45, 225):
-            return False
-        elif x in range(684, 753) and y in range(50, 96):
-            return False
-        return True
-
     def event_handler(self, event: pygame.event) -> bool:
-        last_brick_pos = (0, 0)
         if event.type == pygame.MOUSEBUTTONDOWN and self.bricks <= 3:
             if self.in_allowed_zone(event.pos):
                 self.brick([*event.pos])
                 self.bricks += 1
-                last_brick_pos = event.pos
         if event.type == pygame.KEYDOWN:
             keys = pygame.key.get_pressed()
             if keys[pygame.K_RIGHT]:
@@ -311,25 +304,29 @@ class FourthLevel(Level):
 
 
 class FifthLevel(Level):
+    '''Fifth level
+    Have 16 thorns, 1 exit, 8 bricks, 4 thorns5x, 1 box glover
+    Difficulty - hard
+
+    Initilization arguments:
+        *settings - Dict with settings from class Settings: dict
+        *hit_points - Count of player lifes : int
+
+    Methods:
+        *get_sprites - Load level objects
+    '''
+    __slots__ = []
+
     def __init__(self, settings: dict, hit_points: int):
         super().__init__(settings)
         self.santa.hit_points: int = hit_points
         self.get_sprites()
 
-    def get_sprites(self):
+    def get_sprites(self) -> None:
         # Borders
         self.borders()
-        # Traps
-        self.box_glover([650, 60])
-        for x in range(61, 700, 16):
-            self.thorn([x, 55], 'down')
-            if (x - 61) % 128 == 0:
-                self.ball([x, randrange(-100, -30)])
-        self.exit([707, 200])
-        self.thorns5x([192, 405])
-        self.thorns5x([348, 405])
-        self.thorns5x([513, 405])
-        self.thorns5x([661, 405])
+
+        # Bricks:
         self.brick([665, 238])
         self.brick([63, 284])
         self.brick([230, 342])
@@ -339,6 +336,20 @@ class FifthLevel(Level):
         self.brick([364, 261])
         self.brick([541, 127])
 
+        ''' Traps '''
+        # Thorns and Balls
+        for x in range(61, 686, 16):
+            self.thorn([x, 55], 'down')  # 16
+            if (x - 61) % 128 == 0:
+                self.ball([x, randrange(-100, -30)])  # 5
+        # Box glover
+        self.box_glover([650, 60])
+        # Thorns5x
+        self.thorns5x([192, 405])
+        self.thorns5x([348, 405])
+        self.thorns5x([513, 405])
+        self.thorns5x([661, 405])
 
-
+        # Exit
+        self.exit([707, 200])
 
