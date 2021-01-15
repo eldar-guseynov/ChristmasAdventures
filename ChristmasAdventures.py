@@ -1,23 +1,21 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+''' Main game file, manage windows and catch errors '''
+import logging
 
 import pygame
 
-from Levels import FirstLevel, SecondLevel, ThirdLevel, FourthLevel, FifthLevel
-from Windows import MainWindow, LoseWindow, EndWindow, ShopWindow
-from Utils import Settings, Sounds
+from Levels import FifthLevel, FirstLevel, FourthLevel, SecondLevel, ThirdLevel
+from Utils import Settings
+from Windows import EndWindow, LoseWindow, MainWindow, ShopWindow
 
-from platform import platform
-from datetime import datetime
-import logging
+SETTINGS_FILE = 'settings.ini'
 
+# pygame initilization
 pygame.mixer.pre_init(44100, -8, 2, 512)
 pygame.init()
 pygame.mixer.init()
 pygame.mixer.music.set_volume(10)
 
-SETTINGS_FILE = 'settings.ini'
-
+# logging initilization
 logging.basicConfig(
     filename='./error_log.txt', filemode='a',
     format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
@@ -33,24 +31,23 @@ class GameManager:
     Methods:
         *start - Start game manager and get game class -> None
         *run_game - Launch game -> None
-        *next_level - Launch next level -> None
+        *next_level - Launch next level
     '''
     __slots__ = ['settings', 'level_number', 'hit_points', 'game', 'levels',
-                 'windows', 'sounds']
+                 'windows']
 
     def __init__(self, settings: dict):
         self.settings: dict = settings
         self.level_number: int = 1
-        self.hit_points = 10
-        db_path: str = self.settings['path'] + '/assets/database/'
-        self.sounds = Sounds(db_path)
-        self.levels = {1: FirstLevel, 2: SecondLevel, 3: ThirdLevel,
-                       4: FourthLevel, 5: FifthLevel}
-        self.windows = {'main_window': [MainWindow, self.settings],
-                        'level': [self.levels[1], self.settings, 10],
-                        'lose': [LoseWindow, self.settings],
-                        'end': [EndWindow, self.settings],
-                        'shop_window': [ShopWindow, Settings(SETTINGS_FILE)]}
+        self.hit_points: int = 10
+        self.levels: list = [None, FirstLevel, SecondLevel, ThirdLevel,
+                             FourthLevel, FifthLevel]
+        self.windows: dict = {
+            'main_window': [MainWindow, self.settings],
+            'level': [self.levels[1], self.settings, 10],
+            'lose': [LoseWindow, self.settings],
+            'end': [EndWindow, self.settings],
+            'shop_window': [ShopWindow, Settings(SETTINGS_FILE)]}
 
     def start(self, mode: str = '') -> None:
         '''
@@ -66,16 +63,15 @@ class GameManager:
         self.run_game()
 
     def next_level(self):
-        self.level_number += 1
-        if self.level_number in list(self.levels.keys()):
+        if self.level_number in range(1, len(self.levels) - 1):
+            self.level_number += 1
             return self.levels[self.level_number](
                 self.settings, self.game.santa.hit_points)
-        else:
-            self.level_number = 1
-            return self.windows['end'][0](*self.windows['end'][1:])
+        self.level_number = 1
+        return self.windows['end'][0](*self.windows['end'][1:])
 
     def run_game(self) -> None:
-        start_mode = self.game.mode
+        start_mode: str = self.game.mode
         self.game.game_cycle()
         if self.game.mode != start_mode:
             if self.game.mode == 'replay':
@@ -84,19 +80,27 @@ class GameManager:
                 new_mode = self.game.mode
             if new_mode in ['win', 'level']:
                 try:
-                    self.hit_points = self.game.santa.hit_points
+                    self.hit_points: int = self.game.santa.hit_points
                 except AttributeError:
                     self.hit_points = 10
             self.start(new_mode)
 
 
+def count_launch():
+    updated_number_of_games = str(
+        settings_manager.settings['number_of_games'] + 1)
+    settings_manager.save({'number_of_games': updated_number_of_games})
+
+
 settings_manager = Settings(SETTINGS_FILE)
-settings_manager.save({'number_of_games':
-                       str(settings_manager.settings['number_of_games'] + 1)})
+count_launch()
+
 if __name__ == "__main__":
     game_manager = GameManager(settings_manager.settings)
     try:
         game_manager.start('main_window')
     except Exception as error:
+        # writing error info in ./error_log.txt
         logging.exception(error, exc_info=True)
+
 pygame.quit()

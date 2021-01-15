@@ -1,9 +1,6 @@
-# -*- coding: utf-8 -*-
-
-from os.path import exists
-from random import choice
 from os import listdir
-from random import randrange
+from os.path import exists
+from random import choice, randrange
 
 import pygame
 

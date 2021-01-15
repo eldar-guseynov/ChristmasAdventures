@@ -1,15 +1,13 @@
-# -*- coding: utf-8 -*-
+from os.path import exists
+from webbrowser import open as wb_open
 
 import pygame
 import pygame_gui
 import pyganim
 
-from UI import Text, Button, Label, Message
-from Sprites import Player, Ball
-from Utils import DataBase, Sounds, Settings
-
-from os.path import exists
-from webbrowser import open as wb_open
+from Sprites import Ball, Player
+from UI import Button, Label, Message, Text
+from Utils import DataBase, Settings, Sounds
 
 
 class Window:
@@ -117,6 +115,12 @@ class Level(Window):
         self.start_hit_points = self.santa.hit_points
         self.get_animations()
         self.animation_list = []
+        self.is_walking = False
+
+    def reset(self):
+        self.move_direction = False
+        self.is_jumping = False
+        self.is_sitting = False
         self.is_walking = False
 
     def get_animations(self):
@@ -442,7 +446,7 @@ class LoseWindow(Window):
         self.background_filler = pygame.image.load(background_path)
 
         self.sounds.stop_all()
-        self.sounds.fast_play('lose')
+        self.sounds.play('lose')
 
     def get_buttons(self) -> list:
         images_name_list = ['replay'] * 10
