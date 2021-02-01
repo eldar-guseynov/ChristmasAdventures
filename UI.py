@@ -75,7 +75,7 @@ class Message(pygame_gui.windows.UIMessageWindow):
 
     def __init__(self, text: str, code_name: str, manager: pygame_gui.UIManager,
                  position: list, size: list, title: str):
-        rect = pygame.Rect((*position), (*size))
+        rect = pygame.Rect((*position,), (*size,))
         super().__init__(rect=rect, window_title=title, html_message=text,
                          manager=manager)
         self.dismiss_button.text = 'Ok'
@@ -106,7 +106,7 @@ class Label(pygame_gui.elements.UIButton):
 
     def __init__(self, text: str, code_name: str, manager: pygame_gui.UIManager,
                  position: list, size: list):
-        label_rect = pygame.Rect((*position), (*size))
+        label_rect = pygame.Rect((*position,), (*size,))
         super().__init__(label_rect, text, manager)
         self.code_name = code_name
 

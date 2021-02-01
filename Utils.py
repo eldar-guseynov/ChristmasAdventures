@@ -37,7 +37,10 @@ class DataBase:
 
     def get_text(self) -> dict:
         self.selected_db_path = self.text_db_path
-        lang = getdefaultlocale()[0].split('_')[0].lower().strip()
+        if None in getdefaultlocale():
+            lang = 'en'
+        else:
+            lang = getdefaultlocale()[0].split('_')[0].lower().strip()
         if lang not in ['ru', 'tr', 'en', 'az']:
             lang = 'en'
         result = self.execute(f'SELECT *\nFROM {lang}')[0]
