@@ -1,7 +1,7 @@
+#!/usr/local/bin/python
 # -*- coding: utf-8 -*-
-
-import pygame_gui
 import pygame
+import pygame_gui
 
 from Utils import DataBase
 
@@ -12,8 +12,8 @@ class Text(pygame.font.Font):
     Initilization arguments:
         *text - Text which you wanna display: str
         *code_name - Special name for Text object for identefication: str
-        *position - Text position on screen [x, y]: list
         *settings - Dict with settings from class Settings: dict
+        *position - Text position on screen [x, y]: list
         *font_size - Size of font: int
         *font_path - Path to font file: str
         *font_name - Font name in database (if have'nt path): str
@@ -29,8 +29,8 @@ class Text(pygame.font.Font):
                  font_size=50, font_path=None, font_name=None):
         self.settings = settings
         self.code_name = code_name
-        if font_path == None:
-            if font_name == None:
+        if font_path is None:
+            if font_name is None:
                 font_name = 'christmas'
             font_path = self.get_font(font_name)
         super().__init__(font_path, font_size)
@@ -39,11 +39,13 @@ class Text(pygame.font.Font):
     def get_font(self, font_name: str) -> str:
         db_path = f'{self.settings["path"]}/assets/database/'
         database = DataBase(db_path)
+        database.get_skins()
         font_path = f"{self.settings['path']}/{database.get_font(font_name)}"
         return font_path
 
-    def get_text(self, text: str,
-                 position: list = None) -> (pygame.font.Font.render, (int, int)):
+    def get_text(
+            self, text: str,
+            position: list = None) -> (pygame.font.Font.render, (int, int)):
         rendered_text = self.render(text, True, (255, 255, 255))
         if position == None:
             text_x = self.settings['window_size'][0] // 2 -\
@@ -75,7 +77,7 @@ class Message(pygame_gui.windows.UIMessageWindow):
 
     def __init__(self, text: str, code_name: str, manager: pygame_gui.UIManager,
                  position: list, size: list, title: str):
-        rect = pygame.Rect((*position), (*size))
+        rect = pygame.Rect((*position,), (*size,))
         super().__init__(rect=rect, window_title=title, html_message=text,
                          manager=manager)
         self.dismiss_button.text = 'Ok'
@@ -106,7 +108,7 @@ class Label(pygame_gui.elements.UIButton):
 
     def __init__(self, text: str, code_name: str, manager: pygame_gui.UIManager,
                  position: list, size: list):
-        label_rect = pygame.Rect((*position), (*size))
+        label_rect = pygame.Rect((*position,), (*size,))
         super().__init__(label_rect, text, manager)
         self.code_name = code_name
 
@@ -158,14 +160,15 @@ class Button(pygame_gui.elements.UIButton):
     def load_icon(self, icon_path) -> pygame.Surface:
         return pygame.transform.scale(pygame.image.load(icon_path), [50, 50])
 
-    def set_icon(self, icon_path) -> None:
+    def set_icon(self, icon_path, is_pressed_version=True) -> None:
         icon_extension = '.' + icon_path.split('.')[-1]
-        hovered_icon_path = '.'.join(icon_path.split(icon_extension)[:-1]) +\
-            '_pressed' + icon_extension
         icon = self.load_icon(icon_path)
-        hovered_icon = self.load_icon(hovered_icon_path)
+        if is_pressed_version:
+            hovered_icon_path = '.'.join(icon_path.split(icon_extension)[:-1]) +\
+                '_pressed' + icon_extension
+            hovered_icon = self.load_icon(hovered_icon_path)
+            self.hovered_image = hovered_icon
         self.normal_image = self.selected_image = icon
-        self.hovered_image = hovered_icon
         self.rebuild()
 
     def get_rect(self, position: list, size: list) -> pygame.Rect:

@@ -1,8 +1,8 @@
+#!/usr/local/bin/python
 # -*- coding: utf-8 -*-
-
 from configparser import ConfigParser, SectionProxy
-from os.path import dirname, abspath
 from locale import getdefaultlocale
+from os.path import abspath, dirname
 from sqlite3 import connect
 
 import pygame
@@ -19,14 +19,16 @@ class DataBase:
         *get_text - Get dict with text on selected language (if it supported)
         *get_sounds - Get sounds list with tuples (path and pygame sound itself)
         *get_font - Return font with selected name
+        *get_skins - Return dict with all skins and they variations
     '''
     __slots__ = ['sound_db_path', 'selected_db_path', 'font_db_path',
-                 'text_db_path']
+                 'text_db_path', 'skins_db_path']
 
     def __init__(self, db_folder_path: str):
         self.sound_db_path: str = f'{db_folder_path}/sounds.db'
         self.font_db_path: str = f'{db_folder_path}/fonts.db'
         self.text_db_path: str = f'{db_folder_path}/text.db'
+        self.skins_db_path: str = f'{db_folder_path}/skins.db'
         self.selected_db_path = self.sound_db_path
 
     def execute(self, command: str) -> str:
@@ -37,13 +39,25 @@ class DataBase:
 
     def get_text(self) -> dict:
         self.selected_db_path = self.text_db_path
-        lang = getdefaultlocale()[0].split('_')[0].lower().strip()
+        if None in getdefaultlocale():
+            lang = 'en'
+        else:
+            lang = getdefaultlocale()[0].split('_')[0].lower().strip()
         if lang not in ['ru', 'tr', 'en', 'az']:
             lang = 'en'
         result = self.execute(f'SELECT *\nFROM {lang}')[0]
         decryptor = {0: 'play', 1: 'shop', 2: 'faq', 3: 'settings',
-                     4: 'faq_text', 5: 'fps'}
+                     4: 'faq_text', 5: 'skin_blocked', 6: 'ordinary_level_tip',
+                     7: 'build_level_tip'}
         return {decryptor[index]: title for index, title in enumerate(result)}
+
+    def get_skins(self) -> dict:
+        decryptor = {0: 'folder_path', 1: 'jump', 2: 'sit', 3: 'stand'}
+        self.selected_db_path: str = self.skins_db_path
+        result: list = self.execute(f'SELECT *\nFROM skins')
+        return {sprite[0]: {decryptor[index]: sprite_path
+                            for index, sprite_path in enumerate(sprite[1:])}
+                for sprite in result}
 
     def get_sounds(self) -> list([tuple, tuple, tuple, ...]):
         self.selected_db_path = self.sound_db_path
@@ -85,10 +99,13 @@ class Settings:
         gravity = float(dirty_settings['gravity'])
         step = int(dirty_settings['step'])
         jump_power = int(dirty_settings['jump_power'])
+        number_of_games = int(dirty_settings['number_of_games'])
         return {'fps': fps, 'path': path,
                 'window_size': window_size,
                 'skin': skin, 'gravity': gravity,
-                'step': step, 'jump_power': jump_power}
+                'step': step, 'jump_power': jump_power,
+                'number_of_games': number_of_games, 'file': 'settings.ini',
+                'visited_github': int(dirty_settings['visited_github'])}
 
     def save(self, new_settings: dict) -> None:
         for key in new_settings:
@@ -116,6 +133,7 @@ class Sounds:
     def __init__(self, database):
         self.database = DataBase(database)
         self.sounds = self.get_sounds()
+        self.sounds['step']['sound'].set_volume(0.5)
 
     def get_sounds(self) -> dict:
         sounds = self.database.get_sounds()
@@ -123,7 +141,8 @@ class Sounds:
                        'sound': pygame.mixer.Sound(path)}
                 for (name, path) in sounds}
 
-    def play(self, name, loops=1) -> None:
+    def play(self, name, loops=0) -> None:
+        self.stop(name)
         self.sounds[name]['sound'].play(loops)
 
     def stop(self, name) -> None:

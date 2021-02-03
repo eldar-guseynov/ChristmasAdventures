@@ -4,7 +4,7 @@
 
 Santa was trapped in dungeon! What you gonna do?  
 Try to ***escape*** and have ***fun***!
-![Second level](https://i.imgur.com/1Ow2MrN.png)
+![Fifth level](https://i.imgur.com/HcX2dNk.png)
 This game was written using Python and libary PyGame, inspired by *[Trap Adventure 2](http://trapadventure2.org/)*
 
 ## How to play?
@@ -12,11 +12,11 @@ This game was written using Python and libary PyGame, inspired by *[Trap Adventu
    Linux:
 
 ```sh
-apt install git python3
+apt install git python
 git clone https://github.com/Ulbandus/ChristmasAdventures/
 cd ChristmasAdventures
 pip install -r requirements.txt
-python3 ChristmasAdventures 
+python ChristmasAdventures 
 ```
 
 <img align="left" width="30" height="30" src="https://i.imgur.com/tD6vH32.png">
@@ -45,6 +45,8 @@ Run builds/win/ChristmasAdventures.exe
 * 1.1.0
     * ADD: All sounds, icons (gui, github, window icon),
     russian readme, a few databases, font, background, reward and heart sprites
+* 1.20
+    * Rewrite move logic,  ADD: skins database, ball, chainsaw, particles, box glover, vulkan, new levels (1-5)
 
 ## Problems? Just text!
 <img align="left" width="30" height="30" src="https://i.imgur.com/62nfi9Z.png">
@@ -53,9 +55,8 @@ Run builds/win/ChristmasAdventures.exe
 
 
 ## Some screenshots...
-![Main menu](https://i.imgur.com/pnNN4TU.png)
-![First level](https://i.imgur.com/mGWVcD2.png)
-![Third level](https://i.imgur.com/V8JV70w.png)
-![FAQ screenshot](https://i.imgur.com/Svu5xkI.png)
-
+![Main menu](https://i.imgur.com/Zd48zSF.png)
+![First level](https://i.imgur.com/Gm0ZrLS.png)
+![Third level](https://i.imgur.com/wiS4Qgn.png)
+![Second level](https://i.imgur.com/ZdXRqkE.png)
 Readme translations: [*Russian*](https://github.com/Ulbandus/ChristmasAdventures/blob/master/docs/readme_ru.md)
