@@ -48,11 +48,6 @@ Run builds/win/ChristmasAdventures.exe
 * 1.20
     * Rewrite move logic,  ADD: skins database, ball, chainsaw, particles, box glover, vulkan, new levels (1-5)
 
-## Problems? Just text!
-<img align="left" width="30" height="30" src="https://i.imgur.com/62nfi9Z.png">
-  
-  [@Ulbandus](https://tlgg.ru/Ulbandus)
-
 
 ## Some screenshots...
 ![Main menu](https://i.imgur.com/Zd48zSF.png)
